@@ -1,0 +1,10 @@
+# @file      Boolean.bgs
+# @brief     Provide boolean's definition.
+# @author    Kazuyuki TAKASE
+# @copyright The MIT License - http://opensource.org/licenses/mit-license.php
+
+
+# Global instances definition
+# =============================================================================
+export const True  = $FF
+export const False = $00

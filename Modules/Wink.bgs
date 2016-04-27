@@ -1,0 +1,61 @@
+# @file      Wink.bgs
+# @brief     Provide expression module for winking face.
+# @author    Kazuyuki TAKASE
+# @copyright The MIT License - http://opensource.org/licenses/mit-license.php
+
+
+# Private instances definition
+# =============================================================================
+const _TIMER_INTERVAL  = 32    # Timer interval, clock count
+const _TIMER1          = 1     # Index of timer 1
+const _COMPARE_MODE    = 6     # For selecting compare mode; 6 = Set when equal T1CC0, clear when equal T1CCn
+const _COMPARE_VALUE   = 32000 # Compare muched value, clock count
+const _CONTINUOUS_MODE = 0     # For selecting continuous mode; 0 = Repeating timeout
+
+dim _enable         # To decide making winking face
+dim _eye_count      # To fade in/out eyes' led
+dim _eye_count_step # To calculate _eye_count
+
+
+# Public methods
+# =============================================================================
+export procedure Wink__enable()
+    _enable = True
+end
+
+
+export procedure Wink__constructor()
+    _enable    = False
+    _eye_count = 100
+
+    call hardware_timer_comparator(_TIMER1, 0, _COMPARE_MODE, _COMPARE_VALUE)
+    call hardware_timer_comparator(_TIMER1, 1, _COMPARE_MODE, _eye_count)
+    call hardware_timer_comparator(_TIMER1, 2, _COMPARE_MODE, _eye_count)
+
+    call hardware_set_soft_timer(_TIMER_INTERVAL, _TIMER1, _CONTINUOUS_MODE)
+end
+
+
+export procedure Wink__timerInterruptionEventHandler()
+    if (_enable = True) then
+        if (_eye_count > 20000) then
+            if (_eye_count_step = 100) then
+                _enable = False
+            end if
+
+            _eye_count_step = -100
+        end if
+
+        if (_eye_count < 2100) then
+            _eye_count_step = 100
+        end if
+
+        _eye_count = _eye_count + _eye_count_step
+
+    else
+        _eye_count = 21000
+    end if
+
+    call hardware_timer_comparator(_TIMER1, 1, _COMPARE_MODE, _eye_count)
+    call hardware_timer_comparator(_TIMER1, 2, _COMPARE_MODE, _eye_count)
+end

@@ -1,0 +1,81 @@
+# @file      Main.bgs
+# @brief     Firmware for PLEN2's head-board (including BLE113).
+# @author    Kazuyuki TAKASE
+# @copyright The MIT License - http://opensource.org/licenses/mit-license.php
+
+
+import "./BasicModules/Boolean.bgs"
+
+import "./Modules/Bluetooth.bgs"
+import "./Modules/RS485Serial.bgs"
+import "./Modules/MPU6050.bgs"
+import "./Modules/Wink.bgs"
+
+
+# Boot event listener (as the application entry point)
+#
+# Call when the device boots up & ready to receive commands.
+# =============================================================================
+event system_boot(major, minor, patch, build, ll_version, protcol, hw)
+    call Bluetooth__constructor()
+    call RS485Serial__constructor()
+    call MPU6050__constructor()
+    call Wink__constructor()
+end
+
+
+# Attribute database event listener: Value
+#
+# Produced at the GATT server when a local attribute value was written by a remote device.
+# =============================================================================
+event attributes_value(connection, reason, handle, offset, value_len, value)
+    call Wink__enable()
+    call RS485Serial__write(value_len, value(0:value_len))
+end
+
+
+# Connection class event listener: Status
+#
+# Generated when a bluetooth connection is received.
+# =============================================================================
+event connection_status(connection, flags, address, address_type, conn_interval, timeout, latency, bonding)
+    call Bluetooth__updateConnectionStatus(connection, latency, timeout)
+end
+
+
+# Connection class event listener: Disconnected
+#
+# Produced when a bluetooth connection is disconnected.
+# =============================================================================
+event connection_disconnected(handle, result)
+    call Wink__constructor()
+    call Bluetooth__disconnect()
+end
+
+
+# Software timer event listener
+#
+# Produced when software timer interruption is generated.
+# =============================================================================
+event hardware_soft_timer(handle)
+    if (Bluetooth__connected = True) then
+        call Wink__timerInterruptionEventHandler()
+    end if
+end
+
+
+# System class event listener: Endpoint Watermark RX
+#
+# Generated if receive buffer of the endpoint has been filled with a number of bytes.
+# =============================================================================
+event system_endpoint_watermark_rx(endpoint, size)
+    if (endpoint = system_endpoint_uart0) then
+        call RS485Serial__detachInterrupt()
+        call RS485Serial__clear(size)
+
+        call MPU6050__sampling()
+        call RS485Serial__write(MPU6050__BUFFER_LENGTH, MPU6050__buffer(0:MPU6050__BUFFER_LENGTH))
+
+        call RS485Serial__attachInterrupt()
+    end if
+end

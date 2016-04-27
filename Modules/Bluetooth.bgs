@@ -1,0 +1,83 @@
+# @file      Bluetooth.bgs
+# @brief     Provide management module of bluetooth communication.
+# @author    Kazuyuki TAKASE
+# @copyright The MIT License - http://opensource.org/licenses/mit-license.php
+
+
+# Public instances definition
+# =============================================================================
+export dim Bluetooth__connected # To check bluetooth connection
+
+
+# Private instances definition
+# =============================================================================
+const _MIN_INTERVAL = 32  # Min timer interval; milli seconds
+const _MAX_INTERVAL = 100 # Max timer interval; milli seconds
+const _ADV_CHANNELS = $07 # Bit mask for selecting advertisement channels
+
+dim _str_buffer(20) # Temporary variable to set the serial number and device name
+dim _mac_addr(6)    # MAC address
+
+
+# Public methods
+# =============================================================================
+export procedure Bluetooth__constructor()
+    Bluetooth__connected = False
+
+    # Set advertisement parameters.
+    call gap_set_adv_parameters(_MAX_INTERVAL, _MAX_INTERVAL, _ADV_CHANNELS)
+
+    # Enable advertisement.
+    call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+
+    # Set bondable mode.
+    call sm_set_bondable_mode(1)
+
+    # Read the local device's public bluetooth address.
+    call system_address_get()(_mac_addr(0:6))
+
+    # Make string from the serial number and the device name.
+    _str_buffer(0:1)  = (_mac_addr(5:1) / $10) + 48 + ((_mac_addr(5:1) / $10) / 10 * 7)
+    _str_buffer(1:1)  = (_mac_addr(5:1) & $0F) + 48 + ((_mac_addr(5:1) & $0F) / 10 * 7)
+    _str_buffer(2:1)  = ":"
+    _str_buffer(3:1)  = (_mac_addr(4:1) / $10) + 48 + ((_mac_addr(4:1) / $10) / 10 * 7)
+    _str_buffer(4:1)  = (_mac_addr(4:1) & $0F) + 48 + ((_mac_addr(4:1) & $0F) / 10 * 7)
+    _str_buffer(5:1)  = ":"
+    _str_buffer(6:1)  = (_mac_addr(3:1) / $10) + 48 + ((_mac_addr(3:1) / $10) / 10 * 7)
+    _str_buffer(7:1)  = (_mac_addr(3:1) & $0F) + 48 + ((_mac_addr(3:1) & $0F) / 10 * 7)
+    _str_buffer(8:1)  = ":"
+    _str_buffer(9:1)  = (_mac_addr(2:1) / $10) + 48 + ((_mac_addr(2:1) / $10) / 10 * 7)
+    _str_buffer(10:1) = (_mac_addr(2:1) & $0F) + 48 + ((_mac_addr(2:1) & $0F) / 10 * 7)
+    _str_buffer(11:1) = ":"
+    _str_buffer(12:1) = (_mac_addr(1:1) / $10) + 48 + ((_mac_addr(1:1) / $10) / 10 * 7)
+    _str_buffer(13:1) = (_mac_addr(1:1) & $0F) + 48 + ((_mac_addr(1:1) & $0F) / 10 * 7)
+    _str_buffer(14:1) = ":"
+    _str_buffer(15:1) = (_mac_addr(0:1) / $10) + 48 + ((_mac_addr(0:1) / $10) / 10 * 7)
+    _str_buffer(16:1) = (_mac_addr(0:1) & $0F) + 48 + ((_mac_addr(0:1) & $0F) / 10 * 7)
+
+    # Write  serial number & MAC address to "Serial Number" characteristic.
+    call attributes_write(c_serial_number, 0, 17, _str_buffer(0:17))
+end
+
+
+export procedure Bluetooth__updateConnectionStatus(connection, latency, timeout)
+    if (Bluetooth__connected = False) then
+
+        # Update the connection parameters of a given connection.
+        call connection_update(connection, 40, 40, latency, timeout)
+    end if
+
+    Bluetooth__connected = True
+end
+
+
+export procedure Bluetooth__disconnect()
+
+    # Set advertisement parameters.
+    call gap_set_adv_parameters(_MAX_INTERVAL, _MAX_INTERVAL, _ADV_CHANNELS)
+
+    # Enable advertisement.
+    call gap_set_mode(gap_general_discoverable, gap_undirected_connectable)
+
+    Bluetooth__connected = False
+end

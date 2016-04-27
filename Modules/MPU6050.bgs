@@ -1,0 +1,104 @@
+# @file      MPU6050.bgs
+# @brief     Provide management module of MPU6050.
+# @author    Kazuyuki TAKASE
+# @copyright The MIT License - http://opensource.org/licenses/mit-license.php
+
+
+# Public instances definition
+# =============================================================================
+export const MPU6050__BUFFER_LENGTH = 13 # Sensor values buffer's length
+
+export dim MPU6050__buffer(13) # Sensor values buffer
+
+
+# Private instances definition
+# =============================================================================
+dim _ # Generic placeholder
+
+
+# Public methods
+# =============================================================================
+export procedure MPU6050__constructor()
+
+    # Set sentinels data.
+    MPU6050__buffer(13) = "\n"
+
+    # Read WHO_AM_I register (0x75) of device at address.
+    call hardware_i2c_write(208, 0, 1, "\x75")
+
+    # Read 1 byte from I2C buffer.
+    call hardware_i2c_read(208, 1, 1)
+
+    # Set power management register (0x6B) to use gyro clock (0x01).
+    call hardware_i2c_write(208, 1, 2, "\x6B\x01")
+
+    # Set configuration register (0x1A) filter at 90Hz (0x02).
+    call hardware_i2c_write(208, 1, 2, "\x1A\x02")
+
+    # Set gyro configuration register (0x1B) to all zeros (0x00).
+    call hardware_i2c_write(208, 1, 2, "\x1B\x00")
+
+    # Set accelerometer configuration register (0x1C) to all zeros (0x00).
+    call hardware_i2c_write(208, 1, 2, "\x1C\x00")
+end
+
+
+export procedure MPU6050__sampling()
+
+    # Accelerometer Measurements
+    #
+    # Read the acceleration X, Y, Z (high, then low bytes) registers.
+
+    # 0x3B : acceleration X (high byte)
+    call hardware_i2c_write(208, 0, 1, "\x3B")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(0))
+
+    # 0x3C : acceleration X (low byte)
+    call hardware_i2c_write(208, 0, 1, "\x3C")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(1))
+
+    # 0x3D : acceleration Y (high byte)
+    call hardware_i2c_write(208, 0, 1, "\x3D")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(2))
+
+    # 0x3E : acceleration Y (low byte)
+    call hardware_i2c_write(208, 0, 1, "\x3E")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(3))
+
+    # 0x3F : acceleration Z (high byte)
+    call hardware_i2c_write(208, 0, 1, "\x3F")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(4))
+
+    # 0x40 : acceleration Z (low byte)
+    call hardware_i2c_write(208, 0, 1, "\x40")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(5))
+
+
+    # Gyroscope Measurements
+    #
+    # Read the gyroscope Roll, Pitch, Yaw (high, then low bytes) registers.
+
+    # 0x43 : gyroscope Roll (high byte)
+    call hardware_i2c_write(208, 0, 1, "\x43")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(6))
+
+    # 0x44 : gyroscope Roll (low byte)
+    call hardware_i2c_write(208, 0, 1, "\x44")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(7))
+
+    # 0x45 : gyroscope Pitch (high byte)
+    call hardware_i2c_write(208, 0, 1, "\x45")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(8))
+
+    # 0x46 : gyroscope Pitch (low byte)
+    call hardware_i2c_write(208, 0, 1, "\x46")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(9))
+
+    # 0x47 : gyroscope Roll (high byte)
+    call hardware_i2c_write(208, 0, 1, "\x47")
+    call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(10))
+
+    # 0x48 : gyroscope Roll (low byte)
+    call hardware_i2c_write(208, 0, 1, "\x48")
+    call hardware_i2c_read(208, 1, 1)(_, _, MPU6050__buffer(11))
+end

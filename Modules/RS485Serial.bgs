@@ -1,0 +1,59 @@
+# @file      RS485Serial.bgs
+# @brief     Provide management module of serial communication via RS485.
+# @author    Kazuyuki TAKASE
+# @copyright The MIT License - http://opensource.org/licenses/mit-license.php
+
+
+# Private instances definition
+# =============================================================================
+const _PORT0 = 0   # Index of I/O port 0
+const _P0_1  = $02 # Bit mask for selecting P0_1
+
+
+# Public methods
+# =============================================================================
+export procedure RS485Serial__constructor()
+
+    # Endpoint UART0 set watermarks; accepts 1 byte.
+    call system_endpoint_set_watermarks(system_endpoint_uart0, 1, False)
+
+    # P0_1 is used as output.
+    call hardware_io_port_config_direction(_PORT0, _P0_1)
+
+    # Set P0_1 is disabled.
+    call hardware_io_port_write(_PORT0, _P0_1, False)
+end
+
+
+export procedure RS485Serial__write(length, data())
+
+    # Set P0_1 is enabled.
+    call hardware_io_port_write(_PORT0, _P0_1, True)
+
+    # Send data to endpoint UART0.
+    call system_endpoint_tx(system_endpoint_uart0, length, data(0:length))
+
+    # Set P0_1 is disabled.
+    call hardware_io_port_write(_PORT0, _P0_1, False)
+end
+
+
+export procedure RS485Serial__clear(size)
+
+    # Read data from endpoint UART0.
+    call system_endpoint_rx(system_endpoint_uart0, size)
+end
+
+
+export procedure RS485Serial__attachInterrupt()
+
+    # Endpoint set watermarks UART0; accepts 1 byte.
+    call system_endpoint_set_watermarks(system_endpoint_uart0, 1, False)
+end
+
+
+export procedure RS485Serial__detachInterrupt()
+
+    # Endpoint set watermarks UART0; accepts no data.
+    call system_endpoint_set_watermarks(system_endpoint_uart0, False, False)
+end
