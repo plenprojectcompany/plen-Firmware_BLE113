@@ -94,11 +94,11 @@ export procedure MPU6050__sampling()
     call hardware_i2c_write(208, 0, 1, "\x46")
     call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(9))
 
-    # 0x47 : gyroscope Roll (high byte)
+    # 0x47 : gyroscope Yaw (high byte)
     call hardware_i2c_write(208, 0, 1, "\x47")
     call hardware_i2c_read(208, 0, 1)(_, _, MPU6050__buffer(10))
 
-    # 0x48 : gyroscope Roll (low byte)
+    # 0x48 : gyroscope Yaw (low byte)
     call hardware_i2c_write(208, 0, 1, "\x48")
     call hardware_i2c_read(208, 1, 1)(_, _, MPU6050__buffer(11))
 end
