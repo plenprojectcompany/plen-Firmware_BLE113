@@ -1,4 +1,4 @@
-﻿Firmware for BLE113 | PLEN Project Company
+Firmware for BLE113 | PLEN Project Company
 ===============================================================================
 
 ## Attention!
@@ -6,8 +6,9 @@
 Please get it [here](https://plen.jp/shop/) or create yourself.
 
 ## Copyright (c) 2016,
-- [Kazuyuki TAKASE](https://github.com/Guvalif)
 - [PLEN Project Company Inc.](https://plen.jp)
+- Naohiro HAYAISHI
+- [Kazuyuki TAKASE](https://github.com/Guvalif)
 
 ## Build Environment
 - Windows 8.1 Professional edition
